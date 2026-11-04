@@ -1,0 +1,14 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { normalize } from '../bridges/normalize.mjs';
+import { Outbox } from '../bridges/outbox.mjs';
+const ctx={source:'tiktok',roomId:'900000000000000001',hostId:'99',hostUsername:'host'};
+const gift={common:{msgId:'m1'},user:{id:'900000000000000002',nickname:'Ada'},giftId:5655,repeatCount:1,groupId:'g1',gift:{type:1,diamondCount:1,name:'Rose'},toUser:{id:'99'}};
+test('modern gift normalization keeps 64-bit IDs as strings and unit values',()=>{const e=normalize('gift',gift,ctx,100);assert.equal(e.user.id,gift.user.id);assert.equal(e.gift.coins,1);assert.equal(e.gift.streakId,'g1');});
+test('repeat-end duplicate has same deterministic event ID',()=>{assert.equal(normalize('gift',gift,ctx).id,normalize('gift',{...gift,common:{msgId:'different'},repeatEnd:1},ctx).id);assert.notEqual(normalize('gift',gift,ctx).id,normalize('gift',{...gift,repeatCount:2},ctx).id);});
+test('paid events with unknown metadata, recipient or streak identity fail closed',()=>{assert.equal(normalize('gift',{...gift,gift:{type:1}},ctx),null);assert.equal(normalize('gift',{...gift,groupId:null},ctx),null);assert.equal(normalize('gift',{...gift,toUser:{id:'other'}},ctx),null);assert.equal(normalize('gift',gift,{...ctx,hostId:''}),null);});
+test('unsafe numeric IDs are not converted into rounded financial event identities',()=>{assert.equal(normalize('gift',{...gift,user:{id:900000000000000002}},ctx),null);});
+test('TikFinity legacy gifts normalize without copying full chat',()=>{const e=normalize('gift',{userId:'u',nickname:'Ada',giftId:1,msgId:'m',diamondCount:10,repeatCount:1,giftType:0,giftName:'Gift'},{source:'tikfinity',roomId:'r'});assert.equal(e.gift.coins,10);assert.equal(normalize('comment',{userId:'u',comment:'private text'},{source:'tikfinity',roomId:'r'}),null);});
+test('chat text crosses the bridge only when forwarding is on, filtered and short',()=>{const on={...ctx,forwardChat:true};assert.equal(normalize('comment',{user:{id:'u'},content:'merhaba dayı'},on).text,'merhaba dayı');assert.equal(normalize('comment',{user:{id:'u'},content:'bak www.site.com'},on),null);assert.equal(normalize('comment',{user:{id:'u'},content:'su'},ctx).command,'su');assert.equal(normalize('comment',{user:{id:'u'},content:'su'},ctx).text,undefined);assert.equal(normalize('member',{user:{id:'u',nickname:'Ada'}},ctx).kind,'join');});
+test('free commands and capped likes are accepted',()=>{const d={user:{id:'u'},content:'!YOĞUR extra'};assert.equal(normalize('comment',d,ctx).command,'!yoğur');assert.equal(normalize('like',{...d,count:99999},ctx).count,5000);});
+test('outbox is idempotent and fails closed at its capacity',()=>{const q=new Outbox(':memory:',1);try{q.push({id:'a'});q.push({id:'a'});assert.equal(q.size(),1);assert.throws(()=>q.push({id:'b'}));assert.equal(JSON.parse(q.first().body).id,'a');q.remove('a');assert.equal(q.size(),0);}finally{q.close();}});

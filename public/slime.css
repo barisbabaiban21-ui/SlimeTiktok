@@ -1,0 +1,63 @@
+/* Broadcast HUD for the 9:16 slime stage. TikTok already shows the host card, chat, joins, follows, gift alerts,
+   Viewer Wishes, rankings and goals, so this draws only the game state and Dayı's bubble, inside TikTok's safe band
+   (y 13-72%, x 6.5-93.5%) and never over his face. */
+.slime-stage{background:#d8c9b8;font-family:Arial,Helvetica,sans-serif;color:#fff;--cream:#fff8e6;--gold:#e2b85a;--ink:#2b2418;--soft:#8a6a2a}
+.slime-stage .hud{position:absolute;inset:0;pointer-events:none;z-index:2}
+.slime-stage svg{width:100%;height:100%;display:block}
+.hud-card,.caption{background:var(--cream);color:var(--ink);border:.3cqw solid var(--gold);box-shadow:0 .5cqw 1.5cqw #0003}
+
+/* Top left, above his eyes: slime state, level, water, anger and the water-against-rescuers tug of war. */
+.hud-card{position:absolute;left:6.5cqw;top:24cqw;width:38cqw;padding:1.1cqw 1.6cqw 1.3cqw;border-radius:2cqw;box-sizing:border-box}
+.hud-row{display:flex;justify-content:space-between;align-items:center;gap:1cqw}
+.hud-row b{font-size:2.3cqw;letter-spacing:.05cqw;white-space:nowrap}
+.hud-row>span{font-size:1.5cqw;font-weight:900;color:var(--soft);letter-spacing:.12cqw;white-space:nowrap}
+.hud-bar{height:.9cqw;border-radius:1cqw;background:#ead9b5;margin:.8cqw 0 .7cqw;overflow:hidden}
+.hud-bar i{display:block;height:100%;background:linear-gradient(90deg,#f0c94e,#e8962f);transition:width .4s}
+.hud-small>span:first-child{font-size:1.75cqw;font-weight:800;color:var(--ink);letter-spacing:0}
+.anger{position:relative;width:14cqw;height:2.1cqw;border-radius:1cqw;background:#ead9b5;overflow:hidden}
+.anger::before{content:'SİNİR';position:absolute;inset:0;display:grid;place-items:center;font-size:1.2cqw;font-weight:900;color:#5a3a1a;z-index:1;letter-spacing:.2cqw}
+.anger i{position:absolute;inset:0 auto 0 0;background:#f3b13c;transition:width .3s}
+.anger[data-stage="angry"] i,.anger[data-stage="explosion"] i{background:#e0442c}
+.anger[data-stage="angry"]::before,.anger[data-stage="explosion"]::before{color:#fff}
+.anger[data-stage="explosion"]{animation:shake .25s infinite}
+.teams{position:relative;height:2.6cqw;margin-top:.8cqw;border-radius:1.3cqw;background:#d6ecc2;overflow:hidden;font-size:1.35cqw;font-weight:900;display:flex;align-items:center;justify-content:center;color:#24321c}
+.teams i{position:absolute;inset:0 auto 0 0;background:#9fd6f4;transition:width .4s}
+.teams span{position:relative;white-space:nowrap;letter-spacing:.1cqw}
+.hud-card[data-stage="loose"] b{color:#b07d10}.hud-card[data-stage="flowing"] b{color:#cf5a12}
+.hud-card[data-stage="soup"]{background:#ffe3dc;border-color:#d8432e}.hud-card[data-stage="soup"] b{color:#b5221a}
+
+/* Dayı's bubble, at shoulder height on the right so it never covers his face. */
+.caption{position:absolute;right:6.5cqw;top:72cqw;width:34cqw;border-radius:3cqw;padding:2cqw 2.4cqw;font-size:3.1cqw;line-height:1.22;font-weight:800;box-sizing:border-box}
+.caption em{font-style:normal;color:#1d1e26}
+.caption span{color:#3b3528}
+.bubble::before{content:"";position:absolute;left:-2.4cqw;top:3.2cqw;border:1.5cqw solid transparent;border-right:2.3cqw solid var(--gold);border-left:0}
+
+/* ?safe=1: TikTok's own UI, measured from a phone screenshot. */
+.safe-zones i{position:absolute;background:#ff1e1e40;outline:.2cqw dashed #ff1e1e}
+.safe-zones .z-top{left:0;right:0;top:0;height:23.1cqw}
+.safe-zones .z-left{left:0;width:6.5cqw;top:23.1cqw;bottom:0}.safe-zones .z-right{right:0;width:6.5cqw;top:23.1cqw;bottom:0}
+.safe-zones .z-chat{left:6.5cqw;width:68.5cqw;top:129.8cqw;height:32cqw}
+.safe-zones .z-buttons{right:6.5cqw;width:6.5cqw;top:129.8cqw;bottom:0}
+.safe-zones .z-bottom{left:6.5cqw;right:6.5cqw;top:161.8cqw;bottom:0}
+
+@keyframes shake{25%{transform:translateX(-.3cqw)}75%{transform:translateX(.3cqw)}}
+.slime-stage .pause-veil{z-index:3}
+.slime-rule{grid-template-columns:1.1fr .7fr 1.3fr .55fr 1fr 28px}
+.rule-row.slime-rule input,.rule-row.slime-rule select{min-width:0}
+.test-buttons{display:flex;flex-wrap:wrap;gap:6px}.test-buttons .button{padding:7px 10px;font-size:12px}
+@media(prefers-reduced-motion:reduce){.anger[data-stage="explosion"]{animation:none}}
+
+/* Dance vote, under the HUD card (inside TikTok's safe band). */
+.vote-card{position:absolute;left:6.5cqw;top:42cqw;width:40cqw;padding:1.6cqw 2cqw;border-radius:2cqw;box-sizing:border-box;background:var(--cream);color:var(--ink);border:.3cqw solid var(--gold);box-shadow:0 .5cqw 1.5cqw #0003;font-size:2.6cqw}
+.vote-card b{font-size:2.8cqw;letter-spacing:.04em}.vote-card>span{float:right;font-weight:800;color:#cf5a12}
+.vote-card ol{list-style:none;margin:1.2cqw 0 .6cqw;padding:0;display:grid;gap:.8cqw}
+.vote-card li{position:relative;padding:.5cqw 1cqw;border-radius:1cqw;background:#0000000d;overflow:hidden;font-weight:700}
+.vote-card li i{position:absolute;inset:0 auto 0 0;background:#ffd84a88;transition:width .4s}
+.vote-card li em,.vote-card li span{position:relative}.vote-card li em{font-style:normal;font-weight:900;margin-right:.8cqw}
+.vote-card li span{float:right}.vote-card p{margin:0;font-size:2.3cqw;color:#5a5244}
+
+/* Golden slime badge: centred above the pan, inside the safe band. */
+.gold-badge{position:absolute;left:50%;top:118cqw;transform:translateX(-50%);padding:1.2cqw 2.6cqw;border-radius:3cqw;background:linear-gradient(90deg,#ffcf2e,#fff1a8,#ffcf2e);color:#5a3b00;font-weight:900;font-size:3cqw;letter-spacing:.04em;box-shadow:0 .6cqw 2cqw #c88a0080;white-space:nowrap;animation:goldPulse 1.2s ease-in-out infinite}
+.gold-badge b{margin-left:1cqw}
+@keyframes goldPulse{50%{transform:translateX(-50%) scale(1.06)}}
+.goal-bar{height:1.6cqw;border-radius:1cqw;background:#0000001a;margin:1.2cqw 0 .8cqw;overflow:hidden}.goal-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff5fa2,#ffd84a);transition:width .4s}

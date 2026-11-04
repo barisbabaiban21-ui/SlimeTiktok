@@ -1,0 +1,126 @@
+/** Synthesized ASMR cues, voice playback and a background music loop (the operator's file, ducked under the voice). */
+const MUSIC_URL = '/assets/music/muzik.mp3';
+const MUSIC_LEVEL = 0.29, MUSIC_DUCKED = 0.09;
+/** Dance tracks, each cut to start at its hook: disco (2:14 of the song) for the mirror ball, the conga (0:15), Osman Tuş (a 6 s loop). */
+const TRACKS: Record<string, { url: string; loop: boolean }> = {
+  disco: { url: '/assets/music/disco.mp3', loop: false }, kongo: { url: '/assets/music/kongo.mp3', loop: true }, osman: { url: '/assets/music/osman.mp3', loop: true }
+};
+const DISCO_LEVEL = 0.4;
+export class AudioEngine {
+  context: AudioContext | null = null;
+  enabled = false;
+  private noise: AudioBuffer | null = null;
+  analyser: AnalyserNode | null = null;
+  private voiceEl: HTMLAudioElement | null = null;
+  private music: { el: HTMLAudioElement; gain: GainNode } | null = null; private duckTimer = 0;
+  /** `?music=0` turns the music off. */
+  musicOn = new URLSearchParams(location.search).get('music') !== '0';
+  async enable(): Promise<void> {
+    this.context ??= new AudioContext(); await this.context.resume(); this.enabled = true;
+    if (!this.noise) {
+      const c = this.context, b = c.createBuffer(1, c.sampleRate, c.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      this.noise = b;
+    }
+    if (!this.analyser) { this.analyser = this.context.createAnalyser(); this.analyser.fftSize = 512; this.analyser.connect(this.context.destination); }
+    if (this.musicOn && !this.music) {
+      const el = new Audio(MUSIC_URL); el.loop = true; el.preload = 'auto';
+      const gain = this.context.createGain(); gain.gain.value = 0;
+      this.context.createMediaElementSource(el).connect(gain); gain.connect(this.context.destination);
+      this.music = { el, gain };
+      // Fade in, then keep it under the voice: lower while he talks, back up a moment after.
+      gain.gain.linearRampToValueAtTime(MUSIC_LEVEL, this.context.currentTime + 3);
+      this.duckTimer = window.setInterval(() => this.duck(), 150);
+    }
+    if (this.music) void this.music.el.play().catch(() => undefined);
+  }
+  private tracks = new Map<string, { el: HTMLAudioElement; gain: GainNode }>(); private track: string | null = null;
+  get discoOn(): boolean { return this.track !== null; }
+  /** Plays a dance's own track from its start (its hook) every time, or stops it with a short fade (null). The background music steps aside meanwhile. */
+  danceTrack(name: string | null): void {
+    if (name === this.track || !this.enabled || !this.context) return;
+    const c = this.context, t = c.currentTime;
+    const prevName = this.track, prev = prevName ? this.tracks.get(prevName) : null;
+    if (prev) { const g = prev.gain.gain; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + 0.8); setTimeout(() => { if (this.track !== prevName) prev.el.pause(); }, 900); }
+    this.track = name && TRACKS[name] ? name : null;
+    if (this.track) {
+      let tr = this.tracks.get(this.track);
+      if (!tr) {
+        const el = new Audio(TRACKS[this.track]!.url); el.preload = 'auto'; el.loop = TRACKS[this.track]!.loop;
+        const gain = c.createGain(); gain.gain.value = 0;
+        c.createMediaElementSource(el).connect(gain); gain.connect(c.destination);
+        tr = { el, gain }; this.tracks.set(this.track, tr);
+      }
+      tr.el.currentTime = 0; void tr.el.play().catch(() => undefined);
+      const g = tr.gain.gain; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(DISCO_LEVEL, t + 0.2);
+    }
+    this.level0 = -1; this.duck();
+  }
+  private level0 = -1; private boosted = false;
+  /** Dance breaks: the music comes up. */
+  boost(on: boolean): void { this.boosted = on; }
+  private duck(): void {
+    if (!this.music || !this.context || !this.enabled) return;
+    const want = this.discoOn ? 0 : this.voicePlaying ? MUSIC_DUCKED : this.boosted ? MUSIC_LEVEL * 1.6 : MUSIC_LEVEL;
+    if (want === this.level0) return;
+    const up = want > this.level0; this.level0 = want;
+    const g = this.music.gain.gain, t = this.context.currentTime;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(want, t + (up ? 1.2 : 0.3));
+  }
+  disable(): void { this.enabled = false; this.voiceEl?.pause(); this.music?.el.pause(); void this.context?.suspend(); }
+  stopVoice(): void { this.voiceEl?.pause(); }
+  /** Wet squelch: band-passed noise with a falling filter. */
+  squish(strength = 1): void {
+    if (!this.enabled || !this.context || !this.noise) return;
+    const c = this.context, t = c.currentTime, src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = this.noise; src.playbackRate.value = 0.6 + Math.random() * 0.5;
+    f.type = 'bandpass'; f.Q.value = 3; f.frequency.setValueAtTime(900 + Math.random() * 500, t); f.frequency.exponentialRampToValueAtTime(180, t + 0.25);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.05 * strength, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    src.connect(f); f.connect(g); g.connect(c.destination); src.start(t, Math.random() * 0.5, 0.35);
+  }
+  pop(): void {
+    if (!this.enabled || !this.context) return;
+    const c = this.context, t = c.currentTime, o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(420 + Math.random() * 300, t); o.frequency.exponentialRampToValueAtTime(90, t + 0.08);
+    g.gain.setValueAtTime(0.035, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.12);
+  }
+  pour(seconds: number): void {
+    if (!this.enabled || !this.context || !this.noise) return;
+    const c = this.context, t = c.currentTime, src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = this.noise; src.loop = true; f.type = 'lowpass'; f.frequency.value = 600;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.012, t + 0.3); g.gain.setValueAtTime(0.012, t + Math.max(0.3, seconds - 0.4)); g.gain.linearRampToValueAtTime(0, t + seconds);
+    src.connect(f); f.connect(g); g.connect(c.destination); src.start(t); src.stop(t + seconds + 0.05);
+  }
+  chime(): void {
+    if (!this.enabled || !this.context) return;
+    const c = this.context, t = c.currentTime;
+    for (const [i, hz] of [523.25, 659.25, 783.99, 1046.5].entries()) {
+      const o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = hz;
+      g.gain.setValueAtTime(0, t + i * 0.08); g.gain.linearRampToValueAtTime(0.05, t + i * 0.08 + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 0.5);
+      o.connect(g); g.connect(c.destination); o.start(t + i * 0.08); o.stop(t + i * 0.08 + 0.55);
+    }
+  }
+  /** Plays a cached TTS file through the analyser so the mouth can follow it. */
+  playVoice(url: string, tape = false): boolean {
+    if (!this.enabled || !this.context || !this.analyser) return false;
+    this.voiceEl?.pause();
+    const a = new Audio(url); a.crossOrigin = 'anonymous';
+    const node = this.context.createMediaElementSource(a); node.connect(this.analyser);
+    a.onended = () => node.disconnect();
+    if (tape) { a.preservesPitch = false; a.playbackRate = AudioEngine.TAPE; }
+    this.voiceEl = a; void a.play().catch(() => undefined);
+    return true;
+  }
+  /** Rage lines play like a tape slowed by hand: 55 % speed, the pitch dropping with it. */
+  static readonly TAPE = 0.55;
+  get voicePlaying(): boolean { return !!this.voiceEl && !this.voiceEl.paused && !this.voiceEl.ended; }
+  private buf = new Uint8Array(512);
+  level(): number {
+    if (!this.analyser || !this.voicePlaying) return 0;
+    this.analyser.getByteTimeDomainData(this.buf);
+    let sum = 0; for (let i = 0; i < this.buf.length; i++) { const v = (this.buf[i]! - 128) / 128; sum += v * v; }
+    return Math.min(1, Math.sqrt(sum / this.buf.length) * 5);
+  }
+}

@@ -1,0 +1,81 @@
+name: slimetiktok
+services:
+  app:
+    build: .
+    init: true
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATA_DIR: /app/data
+      BACKUP_DIR: /app/data/backups
+    ports: ["127.0.0.1:3000:3000"]
+    volumes: ["game_data:/app/data"]
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    logging: &logs
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  edge:
+    image: caddy:2-alpine
+    profiles: [edge]
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app: {condition: service_healthy}
+    logging: *logs
+  bridge:
+    build:
+      context: .
+      dockerfile: deploy/bridge.Dockerfile
+    profiles: [live]
+    init: true
+    # Do not restart an ended/suspended stream or repeatedly retry an account error.
+    restart: "no"
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+      INGEST_URL: http://app:3000/api/ingest
+    volumes: ["bridge_data:/app/data"]
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=64m"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    depends_on:
+      app: {condition: service_healthy}
+    logging: *logs
+  broadcaster:
+    build:
+      context: .
+      dockerfile: deploy/worker.Dockerfile
+    profiles: [broadcast]
+    restart: "no"
+    env_file: .env
+    environment:
+      BROADCAST_URL: http://app:3000/overlay
+      DISPLAY: :99
+    shm_size: 256mb
+    read_only: true
+    tmpfs: ["/tmp:rw,nosuid,size=512m"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 2g
+    depends_on:
+      app: {condition: service_healthy}
+    logging: *logs
+volumes:
+  game_data:
+  bridge_data:
+  caddy_data:
+  caddy_config:

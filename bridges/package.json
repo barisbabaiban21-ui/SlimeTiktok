@@ -1,0 +1,7 @@
+{
+  "name": "slimetiktok-optional-tiktok-bridge",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.16.0" },
+  "dependencies": { "tiktok-live-connector": "2.5.0" }
+}
