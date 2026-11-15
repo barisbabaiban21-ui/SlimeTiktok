@@ -119,37 +119,72 @@ export class AudioEngine {
   private halayTimer: number | null = null;
   private halayStep = 0;
   private halayOn = false;
-  private halayTrack: { el: HTMLAudioElement; gain: GainNode } | null = null;
+  private halayPlayers: { el: HTMLAudioElement; gain: GainNode }[] = [];
+  private halayCurrent = 0;
+  private halayTransitioning = false;
   private halayTrackAttempted = false;
-  /** Optional operator-supplied, licensed Turkish halay recording. Synth pulse remains as a fallback. */
+  /** Two licensed operator-supplied halay tracks crossfade so the dance floor never falls silent. */
   private startHalayTrack(): void {
-    if (!this.enabled || !this.context || this.halayTrack || this.halayTrackAttempted) return;
+    if (!this.enabled || !this.context || this.halayPlayers.length || this.halayTrackAttempted) return;
     this.halayTrackAttempted = true;
-    const el = new Audio('/assets/music/halay.mp3'); el.loop = true; el.preload = 'auto';
-    const gain = this.context.createGain(); gain.gain.value = 0;
-    this.context.createMediaElementSource(el).connect(gain); gain.connect(this.context.destination);
-    const track = { el, gain }; this.halayTrack = track;
-    el.addEventListener('error', () => {
-      if (this.halayTrack === track) { this.halayTrack = null; gain.disconnect(); }
-    }, { once: true });
-    void el.play().then(() => {
-      if (this.halayTrack === track && this.context) {
-        gain.gain.cancelScheduledValues(this.context.currentTime);
-        gain.gain.setValueAtTime(gain.gain.value, this.context.currentTime);
-        gain.gain.linearRampToValueAtTime(0.72, this.context.currentTime + 1.2);
-      }
-    }).catch(() => {
-      if (this.halayTrack === track) this.halayTrack = null;
-      gain.disconnect();
+    const urls = ['/assets/music/halay-1.mp3', '/assets/music/halay-2.mp3'];
+    const players = urls.map(url => {
+      const el = new Audio(url); el.loop = false; el.preload = 'auto';
+      const gain = this.context!.createGain(); gain.gain.value = 0;
+      this.context!.createMediaElementSource(el).connect(gain); gain.connect(this.context!.destination);
+      return { el, gain };
+    });
+    this.halayPlayers = players; this.halayCurrent = 0; this.halayTransitioning = false;
+    const playNext = (from: number, emergency = false): void => {
+      if (!this.halayOn || !this.context || this.halayPlayers !== players || this.halayTransitioning) return;
+      const to = 1 - from, current = players[from], next = players[to], now = this.context.currentTime;
+      this.halayTransitioning = true;
+      next.el.currentTime = 0;
+      next.gain.gain.cancelScheduledValues(now); next.gain.gain.setValueAtTime(0, now);
+      void next.el.play().then(() => {
+        if (!this.halayOn || this.halayPlayers !== players || !this.context) { next.el.pause(); return; }
+        const t = this.context.currentTime, duration = emergency ? 0.15 : 2.2;
+        current.gain.gain.cancelScheduledValues(t); current.gain.gain.setValueAtTime(current.gain.gain.value, t);
+        next.gain.gain.cancelScheduledValues(t); next.gain.gain.setValueAtTime(0, t);
+        current.gain.gain.linearRampToValueAtTime(0, t + duration);
+        next.gain.gain.linearRampToValueAtTime(0.72, t + duration);
+        window.setTimeout(() => {
+          if (!this.halayOn || this.halayPlayers !== players) return;
+          current.el.pause(); current.el.currentTime = 0;
+          this.halayCurrent = to; this.halayTransitioning = false;
+        }, duration * 1000 + 80);
+      }).catch(() => {
+        this.halayTransitioning = false;
+        if (this.halayPlayers === players) { next.gain.disconnect(); }
+      });
+    };
+    players.forEach((player, index) => {
+      player.el.addEventListener('timeupdate', () => {
+        if (index !== this.halayCurrent || this.halayTransitioning || !Number.isFinite(player.el.duration)) return;
+        if (player.el.duration - player.el.currentTime <= 2.5) playNext(index);
+      });
+      player.el.addEventListener('ended', () => {
+        if (index === this.halayCurrent && !this.halayTransitioning) playNext(index, true);
+      });
+      player.el.addEventListener('error', () => {
+        if (this.halayPlayers === players && index === this.halayCurrent) {
+          const next = players[1 - index];
+          void next.el.play().then(() => { this.halayCurrent = 1 - index; }).catch(() => undefined);
+        }
+      });
+    });
+    players[0].gain.gain.setValueAtTime(0.72, this.context.currentTime);
+    void players[0].el.play().catch(() => {
+      if (this.halayPlayers === players) this.halayTrackAttempted = false;
     });
   }
   private stopHalayTrack(): void {
-    const track = this.halayTrack;
-    if (!track || !this.context) return;
-    this.halayTrack = null;
-    const t = this.context.currentTime, g = track.gain.gain;
-    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + 0.25);
-    window.setTimeout(() => { track.el.pause(); track.el.currentTime = 0; track.gain.disconnect(); }, 300);
+    const players = this.halayPlayers; this.halayPlayers = []; this.halayTransitioning = false;
+    for (const player of players) {
+      const t = this.context?.currentTime ?? 0, g = player.gain.gain;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + 0.2);
+      window.setTimeout(() => { player.el.pause(); player.el.currentTime = 0; player.gain.disconnect(); }, 250);
+    }
   }
   /** Original synthesized wedding pulse: davul-like bass hits and a bright zurna-like lead. */
   halay(on: boolean): void {
