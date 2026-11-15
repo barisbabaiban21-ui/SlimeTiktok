@@ -25,6 +25,8 @@ export class GameService {
   armed = false;
   source = { connected: false, provider: 'none', lastHeartbeat: 0 };
   private activity: Activity[] = [];
+  /** Rose senders join the on-screen cockroach halay; names are sanitized before display. */
+  private dancers: { id: string; name: string; joinedAt: number }[] = [];
   private activitySeq = 0;
   private lastSave = 0;
   private lastPrune = 0;
@@ -252,6 +254,13 @@ export class GameService {
           points = (def.kind === 'protect' ? 100 : def.grams) * units;
           status = 'applied';
           if (!blocked && !paused) {
+            if (g.id === '5655') {
+              const dancerName = speakableName(event.user.name, true) ?? 'Gizemli Yeğen';
+              for (let i = 0; i < Math.min(delta, 5); i++) this.dancers.push({ id: randomUUID(), name: dancerName, joinedAt: now });
+              this.dancers = this.dancers.slice(-12);
+              this.show = { seq: ++this.showSeq, type: 'dance', at: now, durationMs: 15000, variant: 4, disco: true };
+              this.lastShow = 'dance';
+            }
             const out = enqueue(this.state, this.settings, rule.ingredient, units, actor, cleanChat(g.name).slice(0, 28) || 'hediyen');
             updated = out.state; events = out.events;
             // Every coin also fills the shared goal bar.
@@ -398,7 +407,7 @@ export class GameService {
   }
   public(now = Date.now()): PublicSnapshot {
     const { queue: _queue, ...game } = this.state;
-    return { now, mode: this.mode, game: structuredClone(game), derived: derive(this.state), menu: this.menu(), settings: structuredClone(this.settings),
+    return { now, mode: this.mode, dancers: this.dancers.map(d => ({ ...d })), game: structuredClone(game), derived: derive(this.state), menu: this.menu(), settings: structuredClone(this.settings),
       growth: { enabled: this.settings.growthEnabled,
         welcome: this.settings.growthEnabled && !this.state.paused && this.welcome && now - this.welcome.at < 8000 ? { ...this.welcome } : null },
       speech: this.director.live(now), show: this.show ? { ...this.show, ...(this.show.votes ? { votes: [...this.show.votes] } : {}), ...(this.show.goal ? { goal: { ...this.show.goal } } : {}), ...(this.show.winner ? { winner: this.nameOf(this.show.winner) ?? 'bir yeğen' } : {}) } : null,
