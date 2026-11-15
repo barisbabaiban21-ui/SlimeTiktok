@@ -36,6 +36,28 @@ test('coin tiers and exact gift IDs map gifts to ingredients', () => {
     assert.equal(new Set(g.menu().map(m => m.ing)).size, g.menu().length);
   } finally { g.close(); }
 });
+test('wedding floor accepts unmapped gifts, gives 30 initial roaches, rotates featured roles and expires passes', () => {
+  const g = make();
+  try {
+    const now = Date.now();
+    const event = (id: string, user: string, coins: number, giftId: string): LiveEvent => ({
+      id, source: 'demo', roomId: 'wedding', timestamp: now, kind: 'gift',
+      user: { id: user, name: user },
+      gift: { id: giftId, name: 'Düğün Hediyesi', coins, repeat: 1, streakId: id }
+    });
+    assert.equal(g.ingest(event('entry', 'Misafir1', 5, 'unmapped-5'), now).status, 'applied');
+    assert.equal(g.public(now).dancers.length, 30, 'first qualifying gift creates a 30-roach halay');
+    assert.equal(g.ingest(event('role1', 'Misafir2', 100, 'unmapped-100'), now + 1000).status, 'applied');
+    const afterRole = g.public(now + 1000).dancers;
+    assert.equal(afterRole.filter(d => d.role === 'halaybasi').length, 1);
+    assert.ok(afterRole.some(d => d.name === 'Misafir2' && d.role === 'halaybasi'));
+    g.tick(100, now + 10 * 60 * 1000);
+    assert.equal(g.public(now + 10 * 60 * 1000).dancers.length, 0, 'all passes expire at ten minutes');
+    assert.equal(g.ingest(event('return', 'Misafir1', 5, 'unmapped-return'), now + 10 * 60 * 1000 + 1).status, 'applied');
+    assert.equal(g.public(now + 10 * 60 * 1000 + 1).dancers.length, 30, 'the same viewer can rejoin after expiry');
+  } finally { g.close(); }
+});
+
 test('paused gifts are accounted but not presented as game effects', () => {
   const g = make(); try { g.control('pause'); assert.equal(g.ingest(gift('a')).status, 'recorded_paused'); assert.equal(derive(g.state).queuedTotal, 0); assert.equal(g.store.metrics().coins, 199); } finally { g.close(); }
 });
