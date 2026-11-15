@@ -155,7 +155,14 @@ export class AudioEngine {
         }, duration * 1000 + 80);
       }).catch(() => {
         this.halayTransitioning = false;
-        if (this.halayPlayers === players) { next.gain.disconnect(); }
+        if (this.halayPlayers === players) {
+          next.gain.disconnect();
+          // If the second file is missing, restart the current one instead of leaving silence.
+          current.el.currentTime = 0;
+          const t = this.context?.currentTime ?? 0;
+          current.gain.gain.cancelScheduledValues(t); current.gain.gain.setValueAtTime(0.72, t);
+          void current.el.play().catch(() => undefined);
+        }
       });
     };
     players.forEach((player, index) => {
@@ -168,8 +175,12 @@ export class AudioEngine {
       });
       player.el.addEventListener('error', () => {
         if (this.halayPlayers === players && index === this.halayCurrent) {
-          const next = players[1 - index];
-          void next.el.play().then(() => { this.halayCurrent = 1 - index; }).catch(() => undefined);
+          const nextIndex = 1 - index, next = players[nextIndex];
+          const t = this.context?.currentTime ?? 0;
+          next.gain.gain.cancelScheduledValues(t); next.gain.gain.setValueAtTime(0.72, t);
+          void next.el.play().then(() => {
+            if (this.halayPlayers === players) { player.el.pause(); this.halayCurrent = nextIndex; }
+          }).catch(() => undefined);
         }
       });
     });
