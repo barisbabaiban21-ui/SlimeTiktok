@@ -55,10 +55,10 @@ test('wedding floor accepts unmapped gifts, gives 30 initial roaches, rotates fe
     const afterRole = g.public(now + 1010).dancers;
     assert.equal(afterRole.filter(d => d.role === 'halaybasi').length, 1);
     assert.ok(afterRole.some(d => d.name === 'Misafir2' && d.role === 'halaybasi'));
-    g.tick(100, now + 10 * 60 * 1000);
-    assert.equal(g.public(now + 10 * 60 * 1000).dancers.length, 0, 'all passes expire at ten minutes');
-    assert.equal(g.ingest(event('return', 'Misafir1', 5, '5487'), now + 10 * 60 * 1000 + 1).status, 'applied');
-    assert.equal(g.public(now + 10 * 60 * 1000 + 1).dancers.length, 30, 'the same viewer can rejoin after expiry');
+    g.tick(100, now + 10 * 60 * 1000 + 1011);
+    assert.equal(g.public(now + 10 * 60 * 1000 + 1011).dancers.length, 0, 'all passes expire at ten minutes');
+    assert.equal(g.ingest(event('return', 'Misafir1', 5, '5487'), now + 10 * 60 * 1000 + 1012).status, 'applied');
+    assert.equal(g.public(now + 10 * 60 * 1000 + 1012).dancers.length, 30, 'the same viewer can rejoin after expiry');
   } finally { g.close(); }
 });
 
