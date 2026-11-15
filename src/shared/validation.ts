@@ -32,7 +32,7 @@ export function parseSettings(value: unknown): Settings {
     if (!INGREDIENTS.includes(r.ingredient as IngredientId)) throw new ValidationError('Invalid ingredient');
     const giftId = r.giftId === '' ? '' : text(r.giftId, 40);
     const label = r.label === undefined || r.label === '' ? '' : displayName(text(r.label, 40));
-    return { giftId, minCoins: number(r.minCoins, 1, 1000000, true), ingredient: r.ingredient as IngredientId, units: number(r.units, 1, 100, true), label };
+    return { giftId, minCoins: number(r.minCoins, 1, 1000000, true), ingredient: r.ingredient as IngredientId, units: number(r.units, 1, 100, true), label, ...(r.weddingEntry === true ? { weddingEntry: true } : {}) };
   });
   if (new Set(giftRules.filter(r => r.giftId).map(r => r.giftId)).size !== giftRules.filter(r => r.giftId).length) throw new ValidationError('Duplicate gift IDs');
   const d = DEFAULT_SETTINGS;
