@@ -252,8 +252,9 @@ export class GameService {
         delta = this.store.giftDelta(JSON.stringify([event.source, event.roomId, user, g.id, g.streakId ?? event.id]), g.repeat, now);
         coins = g.coins * delta;
         const rule = this.ruleFor(g.id, g.coins);
-        // The wedding floor is independent from slime ingredient mapping: any qualifying LIVE gift can join.
-        if (delta > 0 && g.coins >= 5 && !blocked && !paused) {
+        // Only explicitly selected TikTok gifts unlock the wedding floor; ID and per-gift coin price must match exactly.
+        const weddingGift = this.settings.giftRules.find(candidate => candidate.weddingEntry === true && candidate.giftId !== '' && candidate.giftId === g.id && candidate.minCoins === g.coins);
+        if (delta > 0 && weddingGift && !blocked && !paused) {
           const dancerName = speakableName(event.user.name, true) ?? 'Gizemli Misafir';
           if (this.dancers.length === 0) {
             for (let i = 0; i < 30; i++) this.dancers.push({ id: randomUUID(), name: dancerName, joinedAt: now });
