@@ -1,5 +1,5 @@
 import { MeshLambertMaterial } from 'three';
-import type { PublicSnapshot, Speech } from '../shared/types.js';
+import type { PublicSnapshot, Speech, RoachDancer } from '../shared/types.js';
 import { CATALOG } from '../shared/ingredients.js';
 import { DEGRADATION_NAMES, goalTarget } from '../shared/engine.js';
 import { Stage } from './scene/stage.js';
@@ -50,7 +50,7 @@ function update(s: PublicSnapshot): void {
   const roleEmojis: Record<string, string> = { halaybasi: '👑', gelin: '👰', damat: '🤵' };
   const weddingGifts = s.settings.giftRules.filter(rule => rule.weddingEntry && rule.giftId && rule.minCoins >= 5);
   $('roach-gift-list').innerHTML = weddingGifts.map(rule => `<span class="roach-gift-ticket">🎁 ${escapeHtml(rule.label || 'Özel hediye')} · ${rule.minCoins} 💎</span>`).join('');
-  const previewDancers = overlay && params.get('weddingDemo') === '1' && s.dancers.length === 0
+  const previewDancers: RoachDancer[] = overlay && params.get('weddingDemo') === '1' && s.dancers.length === 0
     ? Array.from({ length: 30 }, (_, i) => ({ id: `preview-${i}`, name: ['Ayşe', 'Mehmet', 'Zeynep', 'Emre', 'Elif'][i % 5]!, joinedAt: s.now, ...(i === 0 ? { role: 'halaybasi' as const } : i === 1 ? { role: 'gelin' as const } : i === 2 ? { role: 'damat' as const } : {}) }))
     : [];
   const dancers = s.dancers.length ? s.dancers : previewDancers;
