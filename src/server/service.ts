@@ -26,7 +26,8 @@ export class GameService {
   source = { connected: false, provider: 'none', lastHeartbeat: 0 };
   private activity: Activity[] = [];
   /** Rose senders join the on-screen cockroach halay; names are sanitized before display. */
-  private dancers: { id: string; name: string; joinedAt: number }[] = [];
+  private dancers: { id: string; name: string; joinedAt: number; role?: 'halaybasi' | 'gelin' | 'damat' }[] = [];
+  private weddingRoleIndex = 0;
   private activitySeq = 0;
   private lastSave = 0;
   private lastPrune = 0;
@@ -254,11 +255,22 @@ export class GameService {
           points = (def.kind === 'protect' ? 100 : def.grams) * units;
           status = 'applied';
           if (!blocked && !paused) {
-            if (g.id === '5655') {
-              const dancerName = speakableName(event.user.name, true) ?? 'Gizemli Yeğen';
-              for (let i = 0; i < Math.min(delta, 5); i++) this.dancers.push({ id: randomUUID(), name: dancerName, joinedAt: now });
-              this.dancers = this.dancers.slice(-12);
-              this.show = { seq: ++this.showSeq, type: 'dance', at: now, durationMs: 20000, variant: 0, disco: false };
+            // A gift worth at least 5 coins opens the wedding floor. The first entry brings a full 30-roach halay line.
+            if (g.coins >= 5) {
+              const dancerName = speakableName(event.user.name, true) ?? 'Gizemli Misafir';
+              if (this.dancers.length === 0) {
+                for (let i = 0; i < 30; i++) this.dancers.push({ id: randomUUID(), name: dancerName, joinedAt: now });
+              } else {
+                for (let i = 0; i < Math.min(delta, 5); i++) this.dancers.push({ id: randomUUID(), name: dancerName, joinedAt: now });
+              }
+              // A 100+ coin gift gives its sender the next featured wedding role.
+              if (g.coins >= 100) {
+                const roles = ['halaybasi', 'gelin', 'damat'] as const;
+                const role = roles[this.weddingRoleIndex++ % roles.length]!;
+                this.dancers.push({ id: randomUUID(), name: dancerName, joinedAt: now, role });
+              }
+              this.dancers = this.dancers.slice(-60);
+              this.show = { seq: ++this.showSeq, type: 'dance', at: now, durationMs: 60000, variant: 0, disco: false };
               this.lastShow = 'dance';
             }
             const out = enqueue(this.state, this.settings, rule.ingredient, units, actor, cleanChat(g.name).slice(0, 28) || 'hediyen');
