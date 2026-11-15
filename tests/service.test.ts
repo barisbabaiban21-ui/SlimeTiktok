@@ -45,15 +45,19 @@ test('wedding floor accepts unmapped gifts, gives 30 initial roaches, rotates fe
       user: { id: user, name: user },
       gift: { id: giftId, name: 'Düğün Hediyesi', coins, repeat: 1, streakId: id }
     });
-    assert.equal(g.ingest(event('entry', 'Misafir1', 5, 'unmapped-5'), now).status, 'applied');
-    assert.equal(g.public(now).dancers.length, 30, 'first qualifying gift creates a 30-roach halay');
-    assert.equal(g.ingest(event('role1', 'Misafir2', 100, 'unmapped-100'), now + 1000).status, 'applied');
-    const afterRole = g.public(now + 1000).dancers;
+    assert.equal(g.ingest(event('entry', 'Misafir1', 5, 'unmapped-5'), now).status, 'no_effect');
+    const settings = defaultSettings(); settings.giftRules = settings.giftRules.map(rule => rule.giftId === '5487' ? { ...rule, weddingEntry: true } : rule); g.configure(settings);
+    assert.equal(g.ingest(event('entry2', 'Misafir1', 5, '5487'), now + 10).status, 'applied');
+    assert.equal(g.public(now + 10).dancers.length, 30, 'first selected gift creates a 30-roach halay');
+    assert.equal(g.ingest(event('role1', 'Misafir2', 100, 'unmapped-100'), now + 1000).status, 'no_effect');
+    const selected = defaultSettings(); selected.giftRules = selected.giftRules.map(rule => rule.giftId === '5585' ? { ...rule, weddingEntry: true } : rule); g.configure(selected);
+    assert.equal(g.ingest(event('role1b', 'Misafir2', 100, '5585'), now + 1010).status, 'applied');
+    const afterRole = g.public(now + 1010).dancers;
     assert.equal(afterRole.filter(d => d.role === 'halaybasi').length, 1);
     assert.ok(afterRole.some(d => d.name === 'Misafir2' && d.role === 'halaybasi'));
     g.tick(100, now + 10 * 60 * 1000);
     assert.equal(g.public(now + 10 * 60 * 1000).dancers.length, 0, 'all passes expire at ten minutes');
-    assert.equal(g.ingest(event('return', 'Misafir1', 5, 'unmapped-return'), now + 10 * 60 * 1000 + 1).status, 'applied');
+    assert.equal(g.ingest(event('return', 'Misafir1', 5, '5487'), now + 10 * 60 * 1000 + 1).status, 'applied');
     assert.equal(g.public(now + 10 * 60 * 1000 + 1).dancers.length, 30, 'the same viewer can rejoin after expiry');
   } finally { g.close(); }
 });
