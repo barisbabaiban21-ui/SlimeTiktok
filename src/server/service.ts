@@ -258,7 +258,7 @@ export class GameService {
               const dancerName = speakableName(event.user.name, true) ?? 'Gizemli Yeğen';
               for (let i = 0; i < Math.min(delta, 5); i++) this.dancers.push({ id: randomUUID(), name: dancerName, joinedAt: now });
               this.dancers = this.dancers.slice(-12);
-              this.show = { seq: ++this.showSeq, type: 'dance', at: now, durationMs: 15000, variant: 4, disco: true };
+              this.show = { seq: ++this.showSeq, type: 'dance', at: now, durationMs: 20000, variant: 0, disco: false };
               this.lastShow = 'dance';
             }
             const out = enqueue(this.state, this.settings, rule.ingredient, units, actor, cleanChat(g.name).slice(0, 28) || 'hediyen');
