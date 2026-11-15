@@ -259,7 +259,7 @@ export class GameService {
               for (let i = 0; i < Math.min(delta, 5); i++) this.dancers.push({ id: randomUUID(), name: dancerName, joinedAt: now });
               this.dancers = this.dancers.slice(-12);
               this.show = { seq: ++this.showSeq, type: 'dance', at: now, durationMs: 15000, variant: 4, disco: true };
-              this.lastShow = 'rose-halay';
+              this.lastShow = 'dance';
             }
             const out = enqueue(this.state, this.settings, rule.ingredient, units, actor, cleanChat(g.name).slice(0, 28) || 'hediyen');
             updated = out.state; events = out.events;
