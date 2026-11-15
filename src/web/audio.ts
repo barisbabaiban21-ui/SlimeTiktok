@@ -68,7 +68,7 @@ export class AudioEngine {
     g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
     g.linearRampToValueAtTime(want, t + (up ? 1.2 : 0.3));
   }
-  disable(): void { this.enabled = false; this.voiceEl?.pause(); this.music?.el.pause(); void this.context?.suspend(); }
+  disable(): void { this.enabled = false; if (this.halayTimer !== null) window.clearInterval(this.halayTimer); this.halayTimer = null; this.halayOn = false; this.voiceEl?.pause(); this.music?.el.pause(); void this.context?.suspend(); }
   stopVoice(): void { this.voiceEl?.pause(); }
   /** Wet squelch: band-passed noise with a falling filter. */
   squish(strength = 1): void {
