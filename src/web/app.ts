@@ -15,7 +15,7 @@ const params = new URLSearchParams(location.search);
 document.body.classList.toggle('overlay-mode', overlay); document.body.classList.toggle('admin-mode', admin);
 const app = $('app');
 const stageHtml = `<div class="stage slime-stage" id="stage"><canvas id="garden" aria-label="Cıvık Dayı canlı slime yayını"></canvas>
-<div class="roach-line" id="roach-line" aria-live="polite"></div><div class="hud">
+<div class="roach-halay" id="roach-halay" hidden aria-live="polite"><div class="roach-wedding-sign">DÜĞÜN HALAYI</div><div class="roach-line" id="roach-line"></div><div class="roach-wedding-sub">DAVUL · ZURNA · HALAY</div></div><div class="hud">
   <section class="hud-card" id="hud-card"><div class="hud-row"><b id="hud-stage"></b><span id="hud-level"></span></div><div class="hud-bar"><i id="hud-progress"></i></div><div class="hud-row hud-small"><span id="hud-water"></span><span class="anger" id="hud-anger"><i id="hud-anger-bar"></i></span></div><div class="teams" id="teams"><i id="team-bar"></i><span id="team-text"></span></div></section>
   <div class="gold-badge" id="gold" hidden>ALTIN SLIME · 2× BÜYÜME <b id="gold-time"></b></div>
   <section class="vote-card goal-card" id="goal" hidden><b id="goal-title"></b><span id="goal-time"></span><div class="goal-bar"><i id="goal-bar"></i></div><p id="goal-copy"></p></section>
@@ -45,8 +45,9 @@ function update(s: PublicSnapshot): void {
   last = s; lastReceived = Date.now();
   stage.update(s);
   const roachLine = $('roach-line');
-  roachLine.innerHTML = s.dancers.map((dancer, i) => `<span class="roach-dancer" style="--dance-delay:${(i % 6) * -0.13}s"><b>🪳</b><small>${dancer.name.replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c] ?? c))}</small></span>`).join('');
-  roachLine.hidden = s.dancers.length === 0;
+  const roachHalay = $('roach-halay');
+  roachLine.innerHTML = s.dancers.map((dancer, i) => `<span class="roach-dancer" style="--dance-delay:${(i % 4) * -0.16}s"><b>🪳</b><small>${dancer.name.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] ?? c))}</small></span>`).join('');
+  roachHalay.hidden = s.dancers.length === 0;
   const g = s.game, d = s.derived;
   set('connection', s.mode === 'demo' ? 'Demo bağlantısı' : s.source.connected ? 'Canlı bağlantı' : 'Kaynak bekleniyor'); $('connection').classList.toggle('offline', !s.source.connected);
   set('total-mass', kg(g.mass)); set('recipes', String(g.recipesDone));
