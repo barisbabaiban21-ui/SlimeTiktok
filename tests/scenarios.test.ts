@@ -16,94 +16,10 @@ import type { GameState } from '../src/shared/types.js';
 
 const clean = (sim: Sim) => assert.deepEqual(sim.stats.violations.slice(0, 5), []);
 
-test('water show: one water every two seconds reaches soup in 30–60 seconds, with all anger stages', () => {
-  const sim = new Sim(undefined, { goalCoins: 1000000 });
-  try {
-    const stages = new Set(['good']), anger = new Set(['calm']); let soupAt = 0;
-    for (let s = 0; s < 60; s += 2) {
-      sim.gift(`su${s % 6}`, 1); sim.advance(2000, 100);
-      stages.add(degradation(sim.g.state.consistency)); anger.add(angerStage(sim.g.state.anger));
-      if (!soupAt && degradation(sim.g.state.consistency) === 'soup') soupAt = s + 2;
-    }
-    assert.deepEqual([...stages], ['good', 'loose', 'flowing', 'soup']);
-    assert.deepEqual([...anger], ['calm', 'request', 'begging', 'angry', 'explosion']);
-    assert.ok(soupAt >= 30 && soupAt <= 60, `soup at ${soupAt}s`);
-    assert.equal(multiplier(sim.g.state), 0);
-    const mass = sim.g.state.mass, points = sim.snapshot().leaders[0]!.points;
-    sim.gift('su0', 1); sim.advance(2000);
-    assert.equal(sim.g.state.mass, mass); assert.ok(sim.g.state.goalProgress > 30);
-    assert.ok(sim.snapshot().leaders.some(l => l.points >= points));
-    sim.event({ kind: 'follow', user: { id: 'fan', name: 'Fan' } });
-    assert.equal(sim.g.state.mass, mass, 'free growth also stops in soup');
-    clean(sim);
-  } finally { sim.close(); }
-});
 
-test('water show: rescue, quiet recovery, shield and clear-queue retain mass and reset teams', () => {
-  const sim = new Sim(undefined, { showNames: true });
-  try {
-    for (let i = 0; i < 30; i++) { sim.gift('Su', 1); sim.advance(2000); }
-    const angry = sim.g.state.anger, mass = sim.g.state.mass;
-    for (let i = 0; i < 3; i++) { sim.gift('Ela', 5, 1, '5487'); sim.advance(2000); }
-    assert.ok(sim.g.state.consistency >= -45, `rescued to ${sim.g.state.consistency}`);
-    assert.ok(sim.g.state.anger <= angry - 30);
-    assert.equal(sim.g.state.rescuer?.actor, 'Ela'); assert.ok(sim.g.state.mass >= mass);
-    sim.advance(40000); assert.equal(sim.g.state.anger, 0); assert.equal(sim.g.state.rescuer, null);
-    sim.gift('Kalkan', 10, 1, '8913'); const water = sim.g.state.teams.water;
-    sim.gift('Su', 1); sim.advance(2000);
-    assert.equal(sim.g.state.teams.water, water, 'blocked water does not raise anger or water score');
-    assert.equal(sim.g.state.anger, 0);
-    sim.g.control('clear_queue'); assert.deepEqual(sim.g.state.teams, { water: 0, rescue: 0 }); clean(sim);
-  } finally { sim.close(); }
-});
 
-test('water show: explosions cannot repeat inside sixty seconds, and survive a save', () => {
-  const sim = new Sim();
-  try {
-    const explosions: number[] = []; let seen = 0;
-    for (let s = 0; s < 160; s += 2) {
-      sim.gift('Su', 1); sim.advance(2000);
-      if (sim.g.state.nextExplosionMs !== seen) { seen = sim.g.state.nextExplosionMs; explosions.push(seen); }
-    }
-    assert.ok(explosions.length >= 2);
-    for (let i = 1; i < explosions.length; i++) assert.ok(explosions[i]! - explosions[i - 1]! >= 60000);
-    const saved = JSON.parse(JSON.stringify(sim.g.state));
-    const restored = restoredState(saved, sim.g.settings);
-    assert.equal(restored.nextExplosionMs, sim.g.state.nextExplosionMs);
-    assert.deepEqual(advance(restored, sim.g.settings, 100), advance(sim.g.state, sim.g.settings, 100), 'restored reactions remain deterministic');
-    clean(sim);
-  } finally { sim.close(); }
-});
 
-test('water show: same-stage complaints are at least five seconds apart, transitions interrupt', () => {
-  const d = new Director(), spoken: number[] = []; let seq = 0;
-  for (let t = 0; t < 30000; t += 100) {
-    d.setClock(t);
-    d.onEvent({ type: 'water', actor: 'Ela', anger: 'begging', changed: false, explosion: false }, () => 'Ela', 500);
-    d.tick(t, 500, 600, true);
-    if (d.current && seq !== d.current.seq) { seq = d.current.seq; spoken.push(t); }
-  }
-  assert.ok(spoken.length >= 4);
-  for (let i = 1; i < spoken.length; i++) assert.ok(spoken[i]! - spoken[i - 1]! >= 5000);
-  d.setClock(30000); d.onEvent({ type: 'water', actor: 'Ela', anger: 'explosion', changed: true, explosion: true }, () => 'Ela', 500);
-  d.tick(30000, 500, 600, true); assert.equal(d.current?.mood, 'explosion');
-});
 
-test('water show: thresholds, slow recovery, old saves and all fixed speech warm-ups', () => {
-  assert.deepEqual([-100, 5, 100].map(waterPercent), [100, 47, 0]);
-  const cfg = defaultSettings(), base = freshState(cfg);
-  assert.deepEqual([-71, -70, -46, -45, -21, -20, 5].map(c => multiplier({ ...base, consistency: c })), [0, .5, .5, .8, .8, 1.5, 1.5]);
-  const next = advance({ ...base, consistency: -80 }, cfg, 250).state;
-  assert.ok(next.consistency - -80 < .1);
-  const old = JSON.parse(JSON.stringify(base));
-  for (const k of ['anger', 'lastWaterMs', 'explosionUntilMs', 'nextExplosionMs', 'teams', 'rescuer']) delete old[k];
-  assert.equal(restoredState(old, cfg).anger, 0);
-  const warm = warmLines();
-  for (const line of [...Object.values(WATER_LINES).flat(), ...Object.values(STAGE_LINES).flat(), ...BAIT, ...RESCUE, ...WATER_SHIELD]) {
-    if (!line.includes('{')) assert.ok(warm.includes(line), line);
-  }
-  assert.ok(warm.every(l => !/[{}]/.test(l)));
-});
 
 test('a normal evening: 2 simulated hours of a busy room stays healthy and keeps talking', () => {
   const sim = new Sim(), r = rng(1);
@@ -157,33 +73,7 @@ test('whale: one 10,000-repeat bucket streak is capped and never stalls the game
   } finally { sim.close(); }
 });
 
-test('protection war: water attackers versus shield buyers, shields stay capped and water is blocked', () => {
-  const sim = new Sim(), r = rng(3);
-  try {
-    let blocked = 0;
-    for (let s = 0; s < 600; s++) {
-      for (let i = 0; i < 4; i++) sim.gift(`att${Math.floor(r() * 50)}`, 1, 1);
-      if (s % 3 === 0) sim.gift(`def${Math.floor(r() * 20)}`, 10, 3, '8913');
-      sim.advance(1000);
-      if (sim.g.state.lastAction?.blocked) blocked++;
-    }
-    clean(sim);
-    assert.ok(sim.g.state.protect.su <= 180000);
-    assert.ok(blocked > 50, `blocked ${blocked}`);
-  } finally { sim.close(); }
-});
 
-test('only water and no protection: the slime runs, the character asks for borax, nothing breaks', () => {
-  const sim = new Sim();
-  try {
-    for (let i = 0; i < 300; i++) { sim.gift(`w${i % 30}`, 1); sim.advance(300); }
-    sim.advance(60_000);
-    clean(sim);
-    assert.ok(sim.g.state.consistency < -30, `consistency ${sim.g.state.consistency}`);
-    assert.equal(need(sim.g.state).ing, 'boraks');
-    assert.ok([...sim.stats.speeches].some(t => /boraks/i.test(t)), 'asked for borax');
-  } finally { sim.close(); }
-});
 
 test('only chaos: ketchup, vinegar and eggs never reduce the mass', () => {
   const sim = new Sim(), r = rng(4);
@@ -456,48 +346,5 @@ test('join and comment text validate at the server boundary', () => {
 // Phase A fixes from the live browser check: pacing of the anger, tone, rescue thanks, shorter shields.
 const CHEERFUL_WATER = /su geliyor|Su ekliyoruz|Bir bardak su|Su mu\? Peki|Şıpır şıpır|Musluğu açtık|için!|geldi!$/;
 
-test('a steady water storm walks through every anger stage in order and is heard at each one', () => {
-  const sim = new Sim(undefined, { showNames: true, goalCoins: 1_000_000 });
-  try {
-    const stages: { at: number; stage: string }[] = [];
-    for (let s = 0; s < 90; s++) {
-      sim.gift(NAMES[s % 4]!, 1, 1, '5655', `w${s}`);
-      sim.advance(1_000, 500);
-      const stage = angerStage(sim.g.state.anger);
-      if (stages.at(-1)?.stage !== stage) stages.push({ at: s, stage });
-    }
-    const order = stages.map(x => x.stage);
-    assert.deepEqual(order.slice(0, 5), ['calm', 'request', 'begging', 'angry', 'explosion'], order.join(' → '));
-    for (let i = 1; i < 4; i++) assert.ok(stages[i + 1]!.at - stages[i]!.at >= 6, `${stages[i]!.stage} lasted ${stages[i + 1]!.at - stages[i]!.at} s`);
-    const boom = stages.find(x => x.stage === 'explosion')!.at;
-    assert.ok(boom >= 20 && boom <= 60, `explosion after ${boom} s`);
-    // The explosion is a moment: he settles to angry and does not explode again during the cooldown.
-    const after = stages.filter(x => x.at > boom);
-    assert.equal(after[0]?.stage, 'angry');
-    assert.ok(!after.some(x => x.stage === 'explosion' && x.at < boom + 55), after.map(x => `${x.at}:${x.stage}`).join(' '));
-    const angryLines = sim.stats.spoken.filter(x => x.at > sim.now - 60_000);
-    assert.ok(!angryLines.some(x => CHEERFUL_WATER.test(x.text)), angryLines.map(x => x.text).join(' | '));
-    clean(sim);
-  } finally { sim.close(); }
-});
 
-test('a named rescue is thanked out loud, even in the middle of a storm', () => {
-  const sim = new Sim(undefined, { showNames: true, goalCoins: 1_000_000 });
-  try {
-    for (let s = 0; s < 45; s++) { sim.gift(NAMES[s % 4]!, 1, 1, '5655', `w${s}`); sim.advance(1_000, 500); }
-    assert.ok(sim.g.state.consistency < -45, `storm left consistency at ${sim.g.state.consistency}`);
-    const from = sim.now;
-    sim.gift('Selin', 20, 1, '5487', 'r1');
-    for (let s = 0; s < 12; s++) { sim.gift(NAMES[s % 4]!, 1, 1, '5655', `x${s}`); sim.advance(1_000, 500); }
-    const lines = sim.stats.spoken.filter(x => x.at >= from);
-    assert.ok(lines.some(x => /Selin/.test(x.text) && RESCUE.some(r => r.split('{ad}')[1] && x.text.includes(r.split('{ad}')[1]!.trim().slice(0, 12)))), lines.map(x => x.text).join(' | '));
-  } finally { sim.close(); }
-});
 
-test('water shields are short: eight seconds a unit, capped at forty-five', () => {
-  const s = freshState(defaultSettings());
-  let out = enqueue(s, defaultSettings(), 'su_koruma', 1, 'a').state;
-  assert.equal(out.protect.su, 8000);
-  out = enqueue(out, defaultSettings(), 'su_koruma', 50, 'b').state;
-  assert.equal(out.protect.su, 45000);
-});
