@@ -50,11 +50,15 @@ function update(s: PublicSnapshot): void {
   const roleEmojis: Record<string, string> = { halaybasi: '👑', gelin: '👰', damat: '🤵' };
   const weddingGifts = s.settings.giftRules.filter(rule => rule.weddingEntry && rule.giftId && rule.minCoins >= 5);
   $('roach-gift-list').innerHTML = weddingGifts.map(rule => `<span class="roach-gift-ticket">🎁 ${escapeHtml(rule.label || 'Özel hediye')} · ${rule.minCoins} 💎</span>`).join('');
-  const featured = s.dancers.filter(d => d.role);
+  const previewDancers = overlay && params.get('weddingDemo') === '1' && s.dancers.length === 0
+    ? Array.from({ length: 30 }, (_, i) => ({ id: `preview-${i}`, name: ['Ayşe', 'Mehmet', 'Zeynep', 'Emre', 'Elif'][i % 5]!, joinedAt: s.now, ...(i === 0 ? { role: 'halaybasi' as const } : i === 1 ? { role: 'gelin' as const } : i === 2 ? { role: 'damat' as const } : {}) }))
+    : [];
+  const dancers = s.dancers.length ? s.dancers : previewDancers;
+  const featured = dancers.filter(d => d.role);
   $('roach-wedding-couple').innerHTML = featured.slice(-3).map(d => `<span class="wedding-role ${d.role}">${roleEmojis[d.role!] ?? '💍'} <b>${roleNames[d.role!] ?? 'DÜĞÜN KONUKLARI'}</b><small>${escapeHtml(d.name)}</small></span>`).join('');
-  roachLine.innerHTML = s.dancers.map((dancer, i) => `<span class="roach-dancer ${dancer.role ? 'is-featured ' + dancer.role : ''}" style="--dance-delay:${(i % 8) * -0.11}s"><b>${dancer.role ? (roleEmojis[dancer.role] ?? '🪳') : '🪳'}</b><small>${escapeHtml(dancer.name)}</small></span>`).join('');
-  roachHalay.hidden = s.dancers.length === 0;
-  audio.halay(s.dancers.length > 0);
+  roachLine.innerHTML = dancers.length ? dancers.map((dancer, i) => `<span class="roach-dancer ${dancer.role ? 'is-featured ' + dancer.role : ''}" style="--dance-delay:${(i % 8) * -0.11}s"><b>${dancer.role ? (roleEmojis[dancer.role!] ?? '🪳') : '🪳'}</b><small>${escapeHtml(dancer.name)}</small></span>`).join('') : (overlay ? '<div class="roach-waiting">🎺 İLK HEDİYEYLE HALAY BAŞLIYOR!<small>5+ jetonluk seçili bir hediye gönder, 30 böcek piste insin.</small></div>' : '');
+  roachHalay.hidden = dancers.length === 0 && !overlay;
+  audio.halay(dancers.length > 0);
   const g = s.game, d = s.derived;
   set('connection', s.mode === 'demo' ? 'Demo bağlantısı' : s.source.connected ? 'Canlı bağlantı' : 'Kaynak bekleniyor'); $('connection').classList.toggle('offline', !s.source.connected);
   set('total-mass', kg(g.mass)); set('recipes', String(g.recipesDone));
