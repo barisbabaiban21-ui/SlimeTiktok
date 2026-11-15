@@ -101,23 +101,9 @@ Bu listelerdeki kalıp cümleler 90 saniye içinde tekrar söylenmez. Değişikl
 
 ## 8. Müzik
 
-Müzik dosyaları repoda yoktur (telif). Kendi telifsiz, lisanslı veya sana ait parçalarını `public/assets/music/` klasörüne koy. Halay için tek parçayı `halay-1.mp3` adıyla aynı klasöre ekle. Böcekler halaya girince parça başlar ve son böcek ayrılana kadar baştan sona kesintisiz döngüde çalar. Dosya yoksa uygulama mevcut sentetik davul-zurna benzeri ritmi kullanır:
+Halay müziği depoda `public/assets/music/halay-1.mp3` adıyla bulunur. Halay böcekleri sahneye girince tek parça baştan başlar ve son katılımcı ayrılana kadar kesintisiz döngüde çalar. Dosya yüklenemez veya tarayıcı oynatmayı engellerse uygulama sentetik davul-zurna benzeri ritmi kullanır. Tarayıcıda ses için sayfaya bir kez dokunmak gerekir.
 
-| Dosya | Ne zaman çalar |
-|---|---|
-| `muzik.mp3` | Arka planda sürekli, konuşurken kısılır |
-| `disco.mp3` | Disco topu indiğinde |
-| `kongo.mp3` | Kongo dansında (döngü) |
-| `osman.mp3` | Osman Tuş dansında (döngü) |
-| `halay-1.mp3` | Halay böcekleri sahneye girince otomatik başlar ve son katılımcı ayrılana kadar döngüde çalar |
-
-Dans parçaları dansın başında baştan başlar; şarkının sevdiğin bir yerinden başlaması için önce o kısmı kes:
-
-```bash
-ffmpeg -ss 134 -t 20 -i sarki.mp3 -c:a libmp3lame -b:a 160k public/assets/music/disco.mp3
-```
-
-Dosya yoksa o müzik sessizce atlanır. Arka plan müziğini kapatmak için `?music=0`.
+Diğer dans/arka plan parçaları isteğe bağlıdır ve `public/assets/music/` klasörüne kendi lisanslı ses dosyaların eklenebilir. Dans parçaları dansın başında baştan başlar.
 
 ## 9. Sorun giderme
 
