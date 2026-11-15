@@ -33,6 +33,8 @@ export class AudioEngine {
       this.duckTimer = window.setInterval(() => this.duck(), 150);
     }
     if (this.music) void this.music.el.play().catch(() => undefined);
+    // If dancers arrived before the viewer enabled browser audio, start their halay now.
+    if (this.halayOn) this.halay(true);
   }
   private tracks = new Map<string, { el: HTMLAudioElement; gain: GainNode }>(); private track: string | null = null;
   get discoOn(): boolean { return this.track !== null; }
