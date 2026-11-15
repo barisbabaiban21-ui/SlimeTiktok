@@ -12,7 +12,7 @@ import type { Expression } from './scene/dayi.js';
 
 const overlay = location.pathname === '/overlay', admin = location.pathname === '/admin';
 const params = new URLSearchParams(location.search);
-document.body.classList.toggle('overlay-mode', overlay); document.body.classList.toggle('admin-mode', admin);
+document.body.classList.toggle('overlay-mode', overlay); document.body.classList.toggle('admin-mode', admin); document.body.classList.toggle('wedding-overlay', overlay);
 const app = $('app');
 const stageHtml = `<div class="stage slime-stage" id="stage"><canvas id="garden" aria-label="Cıvık Dayı canlı slime yayını"></canvas>
 <div class="roach-halay" id="roach-halay" hidden aria-live="polite"><div class="roach-wedding-lights">✦ ✧ ✦ ✧ ✦ ✧ ✦</div><div class="roach-wedding-sign">💍 DÜĞÜNÜMÜZE HOŞ GELDİNİZ 💍</div><div class="roach-wedding-couple" id="roach-wedding-couple"></div><div class="roach-line" id="roach-line"></div><div class="roach-wedding-sub">🥁 DAVUL · ZURNA · HALAY 🎺</div><div class="roach-wedding-lights">✧ ✦ ✧ ✦ ✧ ✦ ✧</div></div><div class="roach-gift-guide" id="roach-gift-guide"><b>HALAYA GİRİŞ HEDİYELERİ</b><div id="roach-gift-list"></div></div><div class="hud">
@@ -92,7 +92,7 @@ function update(s: PublicSnapshot): void {
   const vote = s.show?.type === 'vote' && s.show.votes ? s.show : null;
   $('vote').hidden = !vote;
   if (vote) {
-    const names = ['Twist', 'Tavuk dansı', 'Kongo', 'Osman Tuş'], total = vote.votes!.reduce((a, b) => a + b, 0) || 1;
+    const names = ['Halay', 'Çiftetelli', 'Horon', 'Erik Dalı'], total = vote.votes!.reduce((a, b) => a + b, 0) || 1;
     $('vote-list').innerHTML = vote.votes!.map((n, i) => `<li><i style="width:${Math.round(100 * n / total)}%"></i><em>${i + 1}</em> ${names[i]}<span>${n}</span></li>`).join('');
     set('vote-time', `${Math.max(0, Math.ceil((vote.at + vote.durationMs - s.now) / 1000))} sn`);
   }
