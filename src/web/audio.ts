@@ -116,6 +116,45 @@ export class AudioEngine {
   /** Rage lines play like a tape slowed by hand: 55 % speed, the pitch dropping with it. */
   static readonly TAPE = 0.55;
   get voicePlaying(): boolean { return !!this.voiceEl && !this.voiceEl.paused && !this.voiceEl.ended; }
+  private halayTimer: number | null = null;
+  private halayStep = 0;
+  private halayOn = false;
+  /** Original synthesized wedding pulse: davul-like bass hits and a bright zurna-like lead. */
+  halay(on: boolean): void {
+    if (on === this.halayOn) return;
+    this.halayOn = on;
+    if (!on) {
+      if (this.halayTimer !== null) window.clearInterval(this.halayTimer);
+      this.halayTimer = null;
+      return;
+    }
+    if (!this.enabled || !this.context) return;
+    const beat = () => {
+      if (!this.enabled || !this.context || !this.halayOn) return;
+      const c = this.context, t = c.currentTime, step = this.halayStep++ % 8;
+      const kick = c.createOscillator(), kg = c.createGain();
+      kick.type = 'sine'; kick.frequency.setValueAtTime(step % 4 === 0 ? 105 : 78, t);
+      kick.frequency.exponentialRampToValueAtTime(38, t + 0.16);
+      kg.gain.setValueAtTime(0.0001, t); kg.gain.linearRampToValueAtTime(step % 4 === 0 ? 0.22 : 0.12, t + 0.008);
+      kg.gain.exponentialRampToValueAtTime(0.0001, t + 0.2); kick.connect(kg); kg.connect(c.destination); kick.start(t); kick.stop(t + 0.21);
+      if (step % 2 === 1 && this.noise) {
+        const src = c.createBufferSource(), filter = c.createBiquadFilter(), clap = c.createGain();
+        src.buffer = this.noise; filter.type = 'highpass'; filter.frequency.value = 1800;
+        clap.gain.setValueAtTime(0.0001, t); clap.gain.linearRampToValueAtTime(0.045, t + 0.004); clap.gain.exponentialRampToValueAtTime(0.0001, t + 0.075);
+        src.connect(filter); filter.connect(clap); clap.connect(c.destination); src.start(t, Math.random() * 0.8, 0.08);
+      }
+      if (step === 0 || step === 4) {
+        const lead = c.createOscillator(), lg = c.createGain(), notes = step === 0 ? [587.33, 698.46, 783.99, 698.46] : [659.25, 783.99, 880, 783.99];
+        lead.type = 'sawtooth'; lead.frequency.setValueAtTime(notes[0]!, t);
+        lead.frequency.setValueAtTime(notes[1]!, t + 0.11); lead.frequency.setValueAtTime(notes[2]!, t + 0.22); lead.frequency.setValueAtTime(notes[3]!, t + 0.33);
+        lg.gain.setValueAtTime(0.0001, t); lg.gain.linearRampToValueAtTime(0.018, t + 0.025); lg.gain.setValueAtTime(0.018, t + 0.28); lg.gain.exponentialRampToValueAtTime(0.0001, t + 0.43);
+        const tone = c.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 1700;
+        lead.connect(tone); tone.connect(lg); lg.connect(c.destination); lead.start(t); lead.stop(t + 0.44);
+      }
+    };
+    beat();
+    this.halayTimer = window.setInterval(beat, 440);
+  }
   private buf = new Uint8Array(512);
   level(): number {
     if (!this.analyser || !this.voicePlaying) return 0;
