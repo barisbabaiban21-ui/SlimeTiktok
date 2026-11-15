@@ -14,7 +14,7 @@ export class AudioEngine {
   private voiceEl: HTMLAudioElement | null = null;
   private music: { el: HTMLAudioElement; gain: GainNode } | null = null; private duckTimer = 0;
   /** `?music=0` turns the music off. */
-  musicOn = new URLSearchParams(location.search).get('music') !== '0';
+  musicOn = location.pathname !== '/overlay' && new URLSearchParams(location.search).get('music') !== '0';
   async enable(): Promise<void> {
     this.context ??= new AudioContext(); await this.context.resume(); this.enabled = true;
     if (!this.noise) {
