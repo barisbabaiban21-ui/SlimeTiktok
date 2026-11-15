@@ -247,7 +247,7 @@ test('every ingredient works alone for an hour without violating anything', () =
     try {
       for (let m = 0; m < 60; m++) { for (let i = 0; i < 20; i++) sim.gift(`u${i}`, 1); sim.advance(60_000, 30_000); }
       assert.deepEqual(sim.stats.violations.slice(0, 3), [], ing);
-      if (CATALOG[ing].kind === 'protect') assert.equal(derive(sim.g.state).queuedTotal, 0);
+      if (CATALOG[ing].kind === 'protect') assert.equal(derive(sim.g.state).queued[ing] ?? 0, 0, `${ing} must apply instantly, not enter the character queue`);
     } finally { sim.close(); }
   }
 });
