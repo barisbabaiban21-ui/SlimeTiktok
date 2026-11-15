@@ -173,6 +173,8 @@ export class GameService {
   }
   tick(deltaMs: number, now = Date.now()): void {
     this.clock = now;
+    // Wedding-floor passes last ten minutes. Expired dancers (including featured roles) leave automatically.
+    this.dancers = this.dancers.filter(dancer => now - dancer.joinedAt < 10 * 60 * 1000);
     this.director.setClock(now);
     if (this.mode === 'live' && (!this.source.connected || now - this.source.lastHeartbeat > 45000)) {
       this.source.connected = false;
