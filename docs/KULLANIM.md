@@ -101,7 +101,7 @@ Bu listelerdeki kalıp cümleler 90 saniye içinde tekrar söylenmez. Değişikl
 
 ## 8. Müzik
 
-Müzik dosyaları repoda yoktur (telif). Kendi telifsiz, lisanslı veya sana ait parçalarını `public/assets/music/` klasörüne koy. Halay için iki parçayı `halay-1.mp3` ve `halay-2.mp3` adlarıyla aynı klasöre ekle. Parçalar bitmeden yaklaşık 2,5 saniye önce çapraz geçiş yapar; biri eksikse diğeri döngüde kalır. İki dosya da yoksa uygulama mevcut sentetik davul-zurna benzeri ritmi kullanır:
+Müzik dosyaları repoda yoktur (telif). Kendi telifsiz, lisanslı veya sana ait parçalarını `public/assets/music/` klasörüne koy. Halay için tek parçayı `halay-1.mp3` adıyla aynı klasöre ekle. Böcekler halaya girince parça başlar ve son böcek ayrılana kadar baştan sona kesintisiz döngüde çalar. Dosya yoksa uygulama mevcut sentetik davul-zurna benzeri ritmi kullanır:
 
 | Dosya | Ne zaman çalar |
 |---|---|
@@ -109,7 +109,7 @@ Müzik dosyaları repoda yoktur (telif). Kendi telifsiz, lisanslı veya sana ait
 | `disco.mp3` | Disco topu indiğinde |
 | `kongo.mp3` | Kongo dansında (döngü) |
 | `osman.mp3` | Osman Tuş dansında (döngü) |
-| `halay.mp3` | Halay böcekleri sahneye girince otomatik başlar, son katılımcı ayrılınca durur |
+| `halay-1.mp3` | Halay böcekleri sahneye girince otomatik başlar ve son katılımcı ayrılana kadar döngüde çalar |
 
 Dans parçaları dansın başında baştan başlar; şarkının sevdiğin bir yerinden başlaması için önce o kısmı kes:
 
