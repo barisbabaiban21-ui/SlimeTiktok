@@ -33,3 +33,7 @@
 .roach-dancer::after{display:none}
 .roach-wedding-sub{font-size:clamp(8px,1.8cqw,16px);letter-spacing:.15em}
 @keyframes wedding-lights{from{opacity:.55;filter:brightness(.8)}to{opacity:1;filter:brightness(1.6)}}
+
+.roach-gift-list{display:flex;justify-content:center;align-items:center;gap:.55cqw;flex-wrap:wrap;max-width:96%;padding:.35cqw .6cqw}
+.roach-gift-ticket{display:inline-flex;align-items:center;gap:.25em;padding:.3cqw .75cqw;border:1px solid #f4d47b;border-radius:999px;background:#5b101de8;color:#ffeab0;font-size:clamp(8px,1.25cqw,13px);font-weight:900;white-space:nowrap;box-shadow:0 1px 5px #0008}
+.gift-wedding-check{display:flex;align-items:center;justify-content:center;gap:3px;font-size:12px;white-space:nowrap}
