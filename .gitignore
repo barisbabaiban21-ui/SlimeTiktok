@@ -14,6 +14,9 @@ test-results/
 .DS_Store
 __pycache__/
 public/assets/music/
+!public/assets/music/
+public/assets/music/*
+!public/assets/music/halay-1.mp3
 # Character production: raw downloads and intermediate files stay local (see docs/CHARACTER.md)
 art/*
 !art/scripts/
