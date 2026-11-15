@@ -41,3 +41,25 @@
 .roach-gift-guide{position:absolute;z-index:6;top:2%;left:50%;transform:translateX(-50%);width:min(94%,900px);display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 10px;border:1px solid #f2d27a;border-radius:14px;background:#32101ee8;color:#ffe9ac;box-shadow:0 2px 14px #0008;pointer-events:none}
 .roach-gift-guide>b{font-size:clamp(9px,1.25cqw,13px);letter-spacing:.13em}
 .roach-gift-guide #roach-gift-list{display:flex;justify-content:center;flex-wrap:wrap;gap:5px}
+
+
+/* The broadcast overlay is a Turkish wedding stage, not the inherited slime workshop. */
+.wedding-overlay{background:#180d19;overflow:hidden}
+.wedding-overlay .stage{background:
+  radial-gradient(ellipse at 50% 22%,#ffe6a455 0,transparent 34%),
+  radial-gradient(ellipse at 12% 8%,#ffdf8b33 0,transparent 26%),
+  radial-gradient(ellipse at 88% 8%,#ffdf8b33 0,transparent 26%),
+  linear-gradient(180deg,#421326 0%,#210e24 48%,#100d1a 100%)}
+.wedding-overlay .stage canvas,
+.wedding-overlay .stage .hud{display:none}
+.wedding-overlay .roach-halay{top:20%;bottom:auto;min-height:42%;justify-content:center;gap:2.2cqw}
+.wedding-overlay .roach-gift-guide{top:2.5%;width:94%;max-width:none;border-radius:2.5cqw;padding:2cqw;background:#2b0d1bea}
+.wedding-overlay .roach-wedding-sign{font-size:clamp(13px,3.2cqw,30px);padding:1.5cqw 3cqw}
+.wedding-overlay .roach-line{grid-template-columns:repeat(6,minmax(0,1fr));gap:1.1cqw}
+.wedding-overlay .roach-dancer b{font-size:clamp(22px,6.5cqw,58px)}
+.wedding-overlay .roach-dancer small{font-size:clamp(7px,1.7cqw,15px)}
+.wedding-overlay .roach-wedding-sub{font-size:clamp(10px,2.2cqw,20px)}
+.roach-waiting{display:flex;flex-direction:column;align-items:center;gap:2cqw;padding:8cqw 3cqw;border:1px dashed #f5d47a99;border-radius:3cqw;color:#ffe7a0;text-align:center;font-size:clamp(13px,3cqw,27px);font-weight:1000;letter-spacing:.06em;text-shadow:0 2px 8px #000}
+.roach-waiting small{max-width:85%;font-size:clamp(9px,1.8cqw,16px);font-weight:700;line-height:1.6;color:#fff0cf}
+.wedding-overlay .pause-veil{background:#160d1beF;color:#ffe8a5}
+@media(max-aspect-ratio:9/16){.wedding-overlay .roach-halay{top:22%}}
