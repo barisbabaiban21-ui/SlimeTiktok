@@ -16,7 +16,7 @@ export class AudioEngine {
   /** `?music=0` turns the music off. */
   musicOn = new URLSearchParams(location.search).get('music') !== '0';
   async enable(): Promise<void> {
-    this.context ??= new AudioContext(); await this.context.resume(); this.enabled = true;
+    this.context ??= new AudioContext(); await this.context.resume(); this.enabled = true; this.halayTrackAttempted = false;
     if (!this.noise) {
       const c = this.context, b = c.createBuffer(1, c.sampleRate, c.sampleRate), d = b.getChannelData(0);
       for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -120,9 +120,11 @@ export class AudioEngine {
   private halayStep = 0;
   private halayOn = false;
   private halayTrack: { el: HTMLAudioElement; gain: GainNode } | null = null;
+  private halayTrackAttempted = false;
   /** Optional operator-supplied, licensed Turkish halay recording. Synth pulse remains as a fallback. */
   private startHalayTrack(): void {
-    if (!this.enabled || !this.context || this.halayTrack) return;
+    if (!this.enabled || !this.context || this.halayTrack || this.halayTrackAttempted) return;
+    this.halayTrackAttempted = true;
     const el = new Audio('/assets/music/halay.mp3'); el.loop = true; el.preload = 'auto';
     const gain = this.context.createGain(); gain.gain.value = 0;
     this.context.createMediaElementSource(el).connect(gain); gain.connect(this.context.destination);
