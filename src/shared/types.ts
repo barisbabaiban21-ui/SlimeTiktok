@@ -19,7 +19,7 @@ export interface IngredientDef {
   durationMs: number; color: string; protects?: Protectable;
 }
 
-export interface GiftRule { giftId: string; minCoins: number; ingredient: IngredientId; units: number; label: string }
+export interface GiftRule { giftId: string; minCoins: number; ingredient: IngredientId; units: number; label: string; weddingEntry?: boolean }
 export interface Settings {
   locale: 'tr' | 'en'; showNames: boolean; growthEnabled: boolean; voiceEnabled: boolean;
   chatEcho: boolean; chatActions: boolean;
@@ -40,19 +40,19 @@ export const DEFAULT_SETTINGS: Settings = {
   // The water fight is on the cheapest gifts: Rose throws water, Finger Heart rescues, Rosa shields.
   giftRules: [
     { giftId: '5655', minCoins: 1, ingredient: 'su', units: 1, label: 'Gül' },
-    { giftId: '5487', minCoins: 5, ingredient: 'boraks', units: 1, label: 'Parmak Kalp' },
-    { giftId: '8913', minCoins: 10, ingredient: 'su_koruma', units: 1, label: 'Rosa' },
+    { giftId: '5487', minCoins: 5, ingredient: 'boraks', units: 1, label: 'Parmak Kalp', weddingEntry: true },
+    { giftId: '8913', minCoins: 10, ingredient: 'su_koruma', units: 1, label: 'Rosa', weddingEntry: true },
     { giftId: '5269', minCoins: 1, ingredient: 'tiras_kopugu', units: 1, label: 'TikTok' },
     { giftId: '6064', minCoins: 1, ingredient: 'sim', units: 1, label: 'GG' },
-    { giftId: '5658', minCoins: 20, ingredient: 'tutkal', units: 1, label: 'Parfüm' },
-    { giftId: '5879', minCoins: 30, ingredient: 'ketcap', units: 1, label: 'Donut' },
-    { giftId: '5585', minCoins: 100, ingredient: 'yumurta', units: 1, label: 'Konfeti' },
-    { giftId: '5566', minCoins: 100, ingredient: 'sirke', units: 1, label: 'Mishka Bear' },
-    { giftId: '5486', minCoins: 100, ingredient: 'sirke', units: 1, label: 'Mishka Bear' },
-    { giftId: '5660', minCoins: 100, ingredient: 'ketcap_koruma', units: 1, label: 'Kalpli Eller' },
-    { giftId: '5924', minCoins: 100, ingredient: 'ketcap_koruma', units: 1, label: 'Kalpli Eller' },
-    { giftId: '6267', minCoins: 299, ingredient: 'yumurta_koruma', units: 1, label: 'Corgi' },
-    { giftId: '7168', minCoins: 500, ingredient: 'kova', units: 1, label: 'Para Tabancası' },
+    { giftId: '5658', minCoins: 20, ingredient: 'tutkal', units: 1, label: 'Parfüm', weddingEntry: true },
+    { giftId: '5879', minCoins: 30, ingredient: 'ketcap', units: 1, label: 'Donut', weddingEntry: true },
+    { giftId: '5585', minCoins: 100, ingredient: 'yumurta', units: 1, label: 'Konfeti', weddingEntry: true },
+    { giftId: '5566', minCoins: 100, ingredient: 'sirke', units: 1, label: 'Mishka Bear', weddingEntry: true },
+    { giftId: '5486', minCoins: 100, ingredient: 'sirke', units: 1, label: 'Mishka Bear', weddingEntry: true },
+    { giftId: '5660', minCoins: 100, ingredient: 'ketcap_koruma', units: 1, label: 'Kalpli Eller', weddingEntry: true },
+    { giftId: '5924', minCoins: 100, ingredient: 'ketcap_koruma', units: 1, label: 'Kalpli Eller', weddingEntry: true },
+    { giftId: '6267', minCoins: 299, ingredient: 'yumurta_koruma', units: 1, label: 'Corgi', weddingEntry: true },
+    { giftId: '7168', minCoins: 500, ingredient: 'kova', units: 1, label: 'Para Tabancası', weddingEntry: true },
     // Any other gift lands on a TikTok price step. Shields only come from their own gifts.
     { giftId: '', minCoins: 1, ingredient: 'su', units: 1, label: '1 jeton' },
     { giftId: '', minCoins: 5, ingredient: 'tiras_kopugu', units: 1, label: '5+ jeton' },
