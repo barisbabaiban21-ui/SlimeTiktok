@@ -102,9 +102,12 @@ test('halay passes last ten minutes and an expired viewer can join again', () =>
   try {
     const now = 500_000;
     game.ingest(weddingGift('entry', 'Aynı Misafir', '5487', 5, now), now);
+    const internal = game as unknown as { lastDemo: number };
+    internal.lastDemo = now + 599_999;
     game.tick(100, now + 599_999);
     assert.equal(game.public(now + 599_999).dancers.length, 30);
 
+    internal.lastDemo = now + 600_000;
     game.tick(100, now + 600_000);
     assert.equal(game.public(now + 600_000).dancers.length, 0);
 
