@@ -13,3 +13,23 @@
 .roach-wedding-sub{color:#ffe8a5;font-size:clamp(8px,1.6cqw,15px);font-weight:900;letter-spacing:.22em;text-shadow:0 2px 3px #56090c}
 @keyframes roach-turkish-halay{0%,100%{transform:translateX(-.45cqw) translateY(0) rotate(-8deg)}25%{transform:translateX(.2cqw) translateY(-.35cqw) rotate(3deg)}50%{transform:translateX(.55cqw) translateY(0) rotate(8deg)}75%{transform:translateX(-.15cqw) translateY(-.3cqw) rotate(-2deg)}}
 @media(prefers-reduced-motion:reduce){.roach-dancer{animation:none}}
+
+
+/* Full Turkish wedding floor: a 30+ roach line, bride/groom roles and festive lights. */
+.roach-halay{left:1%;right:1%;bottom:10%;gap:1.1cqw;padding:1.2cqw .7cqw;border:1px solid #f5d47a88;border-radius:3cqw;background:radial-gradient(ellipse at 50% 0%,#7c1429e8,#321024ed 65%,#160e20f2);box-shadow:0 0 0 2px #8e642b,0 0 28px #ffc94c66,inset 0 0 30px #ffcf5a20}
+.roach-wedding-lights{width:100%;text-align:center;color:#ffe28a;font-size:clamp(9px,2.2cqw,20px);letter-spacing:.65em;text-shadow:0 0 8px #ffd45c;animation:wedding-lights 1.3s ease-in-out infinite alternate}
+.roach-wedding-sign{font-size:clamp(10px,2.5cqw,23px);padding:1cqw 2cqw}
+.roach-wedding-couple{display:flex;justify-content:center;gap:1.5cqw;flex-wrap:wrap;width:100%}
+.wedding-role{display:flex;align-items:center;gap:.7cqw;padding:.7cqw 1.4cqw;border:1px solid #f6d47a;border-radius:2cqw;background:linear-gradient(120deg,#fff0bd,#d8a94f);color:#56101b;font-size:clamp(8px,1.7cqw,15px);box-shadow:0 0 12px #ffd86b88}
+.wedding-role small{font-weight:800;max-width:15cqw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wedding-role.gelin{background:linear-gradient(120deg,#fff,#e9d8e9)}
+.wedding-role.damat{background:linear-gradient(120deg,#e9f0f7,#aebbd1)}
+.roach-line{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:.5cqw;width:100%;padding:1cqw .4cqw;border:0}
+.roach-dancer{min-width:0;gap:.2cqw;animation-duration:.58s}
+.roach-dancer b{font-size:clamp(15px,4.4cqw,40px)}
+.roach-dancer small{max-width:100%;width:100%;text-align:center;font-size:clamp(6px,1.35cqw,11px);padding:.4cqw .2cqw;border-radius:1cqw}
+.roach-dancer.is-featured{filter:drop-shadow(0 0 7px #ffdf70)}
+.roach-dancer.is-featured b{font-size:clamp(19px,5.2cqw,47px)}
+.roach-dancer::after{display:none}
+.roach-wedding-sub{font-size:clamp(8px,1.8cqw,16px);letter-spacing:.15em}
+@keyframes wedding-lights{from{opacity:.55;filter:brightness(.8)}to{opacity:1;filter:brightness(1.6)}}
