@@ -27,12 +27,14 @@ export function parseSettings(value: unknown): Settings {
   const o = object(value);
   if (o.locale !== 'tr' && o.locale !== 'en') throw new ValidationError('Invalid locale');
   if (!Array.isArray(o.giftRules) || o.giftRules.length < 1 || o.giftRules.length > 32) throw new ValidationError('1–32 gift rules required');
+  const defaultWeddingGiftIds = new Set(DEFAULT_SETTINGS.giftRules.filter(rule => rule.weddingEntry === true).map(rule => rule.giftId));
   const giftRules: GiftRule[] = o.giftRules.map(value => {
     const r = object(value);
     if (!INGREDIENTS.includes(r.ingredient as IngredientId)) throw new ValidationError('Invalid ingredient');
     const giftId = r.giftId === '' ? '' : text(r.giftId, 40);
     const label = r.label === undefined || r.label === '' ? '' : displayName(text(r.label, 40));
-    return { giftId, minCoins: number(r.minCoins, 1, 1000000, true), ingredient: r.ingredient as IngredientId, units: number(r.units, 1, 100, true), label, ...(r.weddingEntry === true ? { weddingEntry: true } : {}) };
+    const weddingEntry = r.weddingEntry === undefined ? defaultWeddingGiftIds.has(giftId) : bool(r.weddingEntry, 'weddingEntry');
+    return { giftId, minCoins: number(r.minCoins, 1, 1000000, true), ingredient: r.ingredient as IngredientId, units: number(r.units, 1, 100, true), label, weddingEntry };
   });
   if (new Set(giftRules.filter(r => r.giftId).map(r => r.giftId)).size !== giftRules.filter(r => r.giftId).length) throw new ValidationError('Duplicate gift IDs');
   const d = DEFAULT_SETTINGS;
