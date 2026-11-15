@@ -50,7 +50,7 @@ test('wedding floor accepts unmapped gifts, gives 30 initial roaches, rotates fe
     assert.equal(g.ingest(event('entry2', 'Misafir1', 5, '5487'), now + 10).status, 'applied');
     assert.equal(g.public(now + 10).dancers.length, 30, 'first selected gift creates a 30-roach halay');
     assert.equal(g.ingest(event('role1', 'Misafir2', 100, 'unmapped-100'), now + 1000).status, 'no_effect');
-    const selected = defaultSettings(); selected.giftRules = selected.giftRules.map(rule => rule.giftId === '5585' ? { ...rule, weddingEntry: true } : rule); g.configure(selected);
+    const selected = defaultSettings(); selected.giftRules = selected.giftRules.map(rule => ['5487', '5585'].includes(rule.giftId) ? { ...rule, weddingEntry: true } : rule); g.configure(selected);
     assert.equal(g.ingest(event('role1b', 'Misafir2', 100, '5585'), now + 1010).status, 'applied');
     const afterRole = g.public(now + 1010).dancers;
     assert.equal(afterRole.filter(d => d.role === 'halaybasi').length, 1);
