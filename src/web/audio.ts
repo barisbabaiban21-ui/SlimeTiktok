@@ -119,16 +119,49 @@ export class AudioEngine {
   private halayTimer: number | null = null;
   private halayStep = 0;
   private halayOn = false;
+  private halayTrack: { el: HTMLAudioElement; gain: GainNode } | null = null;
+  /** Optional operator-supplied, licensed Turkish halay recording. Synth pulse remains as a fallback. */
+  private startHalayTrack(): void {
+    if (!this.enabled || !this.context || this.halayTrack) return;
+    const el = new Audio('/assets/music/halay.mp3'); el.loop = true; el.preload = 'auto';
+    const gain = this.context.createGain(); gain.gain.value = 0;
+    this.context.createMediaElementSource(el).connect(gain); gain.connect(this.context.destination);
+    const track = { el, gain }; this.halayTrack = track;
+    el.addEventListener('error', () => {
+      if (this.halayTrack === track) { this.halayTrack = null; gain.disconnect(); }
+    }, { once: true });
+    void el.play().then(() => {
+      if (this.halayTrack === track && this.context) {
+        gain.gain.cancelScheduledValues(this.context.currentTime);
+        gain.gain.setValueAtTime(gain.gain.value, this.context.currentTime);
+        gain.gain.linearRampToValueAtTime(0.72, this.context.currentTime + 1.2);
+      }
+    }).catch(() => {
+      if (this.halayTrack === track) this.halayTrack = null;
+      gain.disconnect();
+    });
+  }
+  private stopHalayTrack(): void {
+    const track = this.halayTrack;
+    if (!track || !this.context) return;
+    this.halayTrack = null;
+    const t = this.context.currentTime, g = track.gain.gain;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + 0.25);
+    window.setTimeout(() => { track.el.pause(); track.el.currentTime = 0; track.gain.disconnect(); }, 300);
+  }
   /** Original synthesized wedding pulse: davul-like bass hits and a bright zurna-like lead. */
   halay(on: boolean): void {
     if (!on) {
       this.halayOn = false;
+      this.stopHalayTrack();
       if (this.halayTimer !== null) window.clearInterval(this.halayTimer);
       this.halayTimer = null;
       return;
     }
     this.halayOn = true;
-    if (this.halayTimer !== null || !this.enabled || !this.context) return;
+    if (!this.enabled || !this.context) return;
+    this.startHalayTrack();
+    if (this.halayTimer !== null) return;
     const beat = () => {
       if (!this.enabled || !this.context || !this.halayOn) return;
       const c = this.context, t = c.currentTime, step = this.halayStep++ % 8;
