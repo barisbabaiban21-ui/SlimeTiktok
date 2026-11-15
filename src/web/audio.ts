@@ -121,14 +121,14 @@ export class AudioEngine {
   private halayOn = false;
   /** Original synthesized wedding pulse: davul-like bass hits and a bright zurna-like lead. */
   halay(on: boolean): void {
-    if (on === this.halayOn) return;
-    this.halayOn = on;
     if (!on) {
+      this.halayOn = false;
       if (this.halayTimer !== null) window.clearInterval(this.halayTimer);
       this.halayTimer = null;
       return;
     }
-    if (!this.enabled || !this.context) return;
+    this.halayOn = true;
+    if (this.halayTimer !== null || !this.enabled || !this.context) return;
     const beat = () => {
       if (!this.enabled || !this.context || !this.halayOn) return;
       const c = this.context, t = c.currentTime, step = this.halayStep++ % 8;
