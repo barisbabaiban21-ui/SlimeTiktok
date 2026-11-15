@@ -45,11 +45,13 @@ test('wedding floor accepts unmapped gifts, gives 30 initial roaches, rotates fe
       user: { id: user, name: user },
       gift: { id: giftId, name: 'Düğün Hediyesi', coins, repeat: 1, streakId: id }
     });
-    assert.equal(g.ingest(event('entry', 'Misafir1', 5, 'unmapped-5'), now).status, 'no_effect');
+    g.ingest(event('entry', 'Misafir1', 5, 'unmapped-5'), now);
+    assert.equal(g.public(now).dancers.length, 0, 'an unselected gift must not unlock the halay');
     const settings = defaultSettings(); settings.giftRules = settings.giftRules.map(rule => rule.giftId === '5487' ? { ...rule, weddingEntry: true } : rule); g.configure(settings);
     assert.equal(g.ingest(event('entry2', 'Misafir1', 5, '5487'), now + 10).status, 'applied');
     assert.equal(g.public(now + 10).dancers.length, 30, 'first selected gift creates a 30-roach halay');
-    assert.equal(g.ingest(event('role1', 'Misafir2', 100, 'unmapped-100'), now + 1000).status, 'no_effect');
+    g.ingest(event('role1', 'Misafir2', 100, 'unmapped-100'), now + 1000);
+    assert.equal(g.public(now + 1000).dancers.length, 30, 'an unselected 100-coin gift must not create a featured role');
     const selected = defaultSettings(); selected.giftRules = selected.giftRules.map(rule => ['5487', '5585'].includes(rule.giftId) ? { ...rule, weddingEntry: true } : rule); g.configure(selected);
     assert.equal(g.ingest(event('role1b', 'Misafir2', 100, '5585'), now + 1010).status, 'applied');
     const afterRole = g.public(now + 1010).dancers;
