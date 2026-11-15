@@ -101,7 +101,7 @@ Bu listelerdeki kalıp cümleler 90 saniye içinde tekrar söylenmez. Değişikl
 
 ## 8. Müzik
 
-Müzik dosyaları repoda yoktur (telif). Kendi telifsiz, lisanslı veya sana ait parçalarını `public/assets/music/` klasörüne koy. Halay için `halay.mp3` dosyasını aynı klasöre ekle; dosya yoksa uygulama mevcut sentetik davul-zurna benzeri ritmi kullanır:
+Müzik dosyaları repoda yoktur (telif). Kendi telifsiz, lisanslı veya sana ait parçalarını `public/assets/music/` klasörüne koy. Halay için iki parçayı `halay-1.mp3` ve `halay-2.mp3` adlarıyla aynı klasöre ekle. Parçalar bitmeden yaklaşık 2,5 saniye önce çapraz geçiş yapar; biri eksikse diğeri döngüde kalır. İki dosya da yoksa uygulama mevcut sentetik davul-zurna benzeri ritmi kullanır:
 
 | Dosya | Ne zaman çalar |
 |---|---|
