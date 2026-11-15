@@ -128,7 +128,8 @@ export type ShowType = 'dance' | 'quietDance' | 'blackout' | 'golden' | 'joke' |
 /** variant: which dance (0 twist, 1 cabbage patch, 2 chicken, 3 running man). A vote carries the tally per option 1-4. disco: the mirror ball comes down. */
 export interface Show { seq: number; type: ShowType; at: number; durationMs: number; variant: number; votes?: number[]; disco?: boolean;
   /** Room goals (chat words, likes): progress towards `need`. */ goal?: { need: number; got: number }; winner?: string }
-export interface RoachDancer { id: string; name: string; joinedAt: number }
+export type WeddingRole = 'halaybasi' | 'gelin' | 'damat';
+export interface RoachDancer { id: string; name: string; joinedAt: number; role?: WeddingRole }
 export interface PublicSnapshot {
   now: number; mode: Mode; dancers: RoachDancer[]; game: Omit<GameState, 'queue'>; derived: Derived; menu: MenuRow[];
   settings: Settings; leaders: Leader[]; activity: Activity[]; growth: GrowthSnapshot; speech: Speech | null; show: Show | null;
